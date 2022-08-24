@@ -1,7 +1,18 @@
+using gRide.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Npgsql;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+//Database initialization
+var conStrBuilder = new NpgsqlConnectionStringBuilder(builder.Configuration.GetConnectionString("DefaultConnection"));
+conStrBuilder.Username = builder.Configuration["DbSettings:Username"];
+conStrBuilder.Password = builder.Configuration["DbSettings:Password"];
+builder.Services.AddDbContext<gRideDbContext>(options =>
+    options.UseNpgsql(conStrBuilder.ConnectionString));
 
 var app = builder.Build();
 
