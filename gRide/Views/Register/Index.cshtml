@@ -1,0 +1,47 @@
+﻿@model gRide.ViewModels.RegisterViewModel;
+@{
+    ViewData["Title"] = "Register";
+    var emailErrors = ViewData.ModelState.Where(item => item.Key.Equals("Email")).Select(x => x.Value.Errors);
+    var passwordErrors = ViewData.ModelState.Where(item => item.Key.Equals("Password")).Select(x => x.Value.Errors);
+}
+<h2>Register</h2>
+
+<form asp-action="Create" method="post">
+    <div class="form-group py-2">
+        <label asp-for="Email"></label>
+        <input asp-for="Email" class="form-control" id="inputEmail" placeholder="Enter email" />
+        @if (emailErrors != null)
+        {
+            <ul>
+                @foreach (var error in emailErrors)
+                {
+                    @foreach (var message in error)
+                    {
+                        <li class="text-danger">
+                            <span>@message.ErrorMessage</span>
+                        </li>
+                    }
+                }
+            </ul>
+        }
+    </div>
+    <div class="form-group py-2">
+        <label asp-for="Password"></label>
+        <input asp-for="Password" class="form-control" id="inputPassword" placeholder="Password" />
+        @if (passwordErrors != null)
+        {
+            <ul>
+                @foreach (var error in passwordErrors)
+                {
+                    @foreach (var message in error)
+                    {
+                        <li class="text-danger">
+                            <span>@message.ErrorMessage</span>
+                        </li>
+                    }
+                }
+            </ul>
+        }
+    </div>
+    <button type="submit" class="btn btn-primary">Register</button>
+</form>
