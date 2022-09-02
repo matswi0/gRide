@@ -3,10 +3,11 @@
     ViewData["Title"] = "Register";
     var emailErrors = ViewData.ModelState.Where(item => item.Key.Equals("Email")).Select(x => x.Value.Errors);
     var passwordErrors = ViewData.ModelState.Where(item => item.Key.Equals("Password")).Select(x => x.Value.Errors);
+    var userNameErrors = ViewData.ModelState.Where(item => item.Key.Equals("UserName")).Select(x => x.Value.Errors);
 }
-<h2>Register</h2>
+<h2>Sign in</h2>
 
-<form asp-action="Create" method="post">
+<form asp-controller="Account" asp-action="Register" method="post">
     <div class="form-group py-2">
         <label asp-for="Email"></label>
         <input asp-for="Email" class="form-control" id="inputEmail" placeholder="Enter email" />
@@ -26,8 +27,26 @@
         }
     </div>
     <div class="form-group py-2">
+        <label asp-for="UserName"></label>
+        <input asp-for="UserName" class="form-control" id="inputUserName" placeholder="Enter user name" />
+        @if (userNameErrors != null)
+        {
+            <ul>
+                @foreach (var error in userNameErrors)
+                {
+                    @foreach (var message in error)
+                    {
+                        <li class="text-danger">
+                            <span>@message.ErrorMessage</span>
+                        </li>
+                    }
+                }
+            </ul>
+        }
+    </div>
+    <div class="form-group py-2">
         <label asp-for="Password"></label>
-        <input asp-for="Password" class="form-control" id="inputPassword" placeholder="Password" />
+        <input asp-for="Password" class="form-control" id="inputPassword" placeholder="Enter password" />
         @if (passwordErrors != null)
         {
             <ul>
@@ -43,5 +62,9 @@
             </ul>
         }
     </div>
-    <button type="submit" class="btn btn-primary">Register</button>
+    <div class="row">
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary">Sign in</button>
+        </div>
+    </div>
 </form>
