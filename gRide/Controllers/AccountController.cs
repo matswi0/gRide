@@ -1,5 +1,6 @@
 ﻿using gRide.Data;
 using gRide.ViewModels;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
@@ -68,14 +69,14 @@ namespace gRide.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> LoginAsync(AuthViewModel authViewModel)
+        public async Task<IActionResult> LoginAsync(LoginViewModel loginViewModel)
         {
             if (!ModelState.IsValid) return View();
 
-            var user = _dbContext.Users.FirstOrDefault(u => u.Email == authViewModel.Email);
+            var user = _dbContext.Users.FirstOrDefault(u => u.Email == loginViewModel.Email);
             if (user == null) return View();
 
-            SignInResult result = await _signInManager.PasswordSignInAsync(user, authViewModel.Password, true, false);
+            SignInResult result = await _signInManager.PasswordSignInAsync(user, loginViewModel.Password, loginViewModel.RemeberMe, false);
 
             if (result.Succeeded)
             {
@@ -83,11 +84,12 @@ namespace gRide.Controllers
             }
             else
             {
-                ModelState.AddModelError(string.Empty, "Invalid Login Attempt");
+                ModelState.AddModelError(string.Empty, "Invalid log in attempt");
                 return View(nameof(Login));
             }
         }
 
+        [Authorize]
         public async Task<IActionResult> LogoutAsync()
         {
             if (!User.Identity.IsAuthenticated) return View(nameof(Login));

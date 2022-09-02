@@ -1,4 +1,4 @@
-﻿@model gRide.ViewModels.AuthViewModel;
+﻿@model gRide.ViewModels.LoginViewModel;
 @{
 }
 <h2>Log in</h2>
@@ -7,11 +7,15 @@
     <div asp-validation-summary="All"></div>  
     <div class="form-group py-2">
         <label asp-for="Email"></label>
-        <input asp-for="Email" class="form-control" id="inputEmail" placeholder="Enter email" />
+        <input asp-for="Email" class="form-control" id="inputEmail" />
     </div>
     <div class="form-group py-2">
         <label asp-for="Password"></label>
-        <input asp-for="Password" class="form-control" id="inputPassword" placeholder="Enter password" />
+        <input asp-for="Password" class="form-control" id="inputPassword" />
+    </div>
+    <div class="form-group py-2">
+        <input asp-for="RemeberMe" type="checkbox" class="form-check-input" id="rememberMe" />
+        <label asp-for="RemeberMe" class="form-check-label"></label>
     </div>
     <div class="row">
         <div class="col-12 text-end">
