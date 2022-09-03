@@ -22,7 +22,8 @@ namespace gRide.Controllers
 
         public IActionResult Register()
         {
-            return View();
+            if (User.Identity.IsAuthenticated) return RedirectToAction(nameof(Index) , "Home");
+            else return View();
         }
 
         [HttpPost]
@@ -40,7 +41,7 @@ namespace gRide.Controllers
 
             if (result.Succeeded)
             {
-                return RedirectToAction("HomeController");
+                return RedirectToAction(nameof(Index), "Home");
             }
             else
             {
@@ -65,7 +66,8 @@ namespace gRide.Controllers
 
         public IActionResult Login()
         {
-            return View();
+            if (User.Identity.IsAuthenticated) return RedirectToAction(nameof(Index), "Home");
+            else return View();
         }
 
         [HttpPost]
@@ -92,11 +94,8 @@ namespace gRide.Controllers
         [Authorize]
         public async Task<IActionResult> LogoutAsync()
         {
-            if (!User.Identity.IsAuthenticated) return View(nameof(Login));
-
             await _signInManager.SignOutAsync();
-
-            return RedirectToAction(nameof(Login));
+            return RedirectToAction(nameof(Index), "Home");
         }
     }
 }
