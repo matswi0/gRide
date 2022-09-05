@@ -1,4 +1,5 @@
 ﻿using gRide.Data;
+using gRide.Services;
 using gRide.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -12,24 +13,30 @@ namespace gRide.Controllers
         private readonly UserManager<IdentityUser> _userManager;
         private readonly SignInManager<IdentityUser> _signInManager;
         private readonly gRideDbContext _dbContext;
+        private readonly IMailSender _mailSender;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, gRideDbContext dbContext)
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, 
+            gRideDbContext dbContext, IMailSender mailSender)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _dbContext = dbContext;
+            _mailSender = mailSender;
         }
 
         public IActionResult Register()
         {
-            if (User.Identity.IsAuthenticated) return RedirectToAction(nameof(Index) , "Home");
-            else return View();
+            if (User.Identity.IsAuthenticated) 
+                return RedirectToAction(nameof(Index) , "Home");
+            
+            return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> RegisterAsync(RegisterViewModel registerViewModel)
         {
-            if (!ModelState.IsValid) return View(nameof(Register));
+            if (!ModelState.IsValid) 
+                return View(nameof(Register));
 
             IdentityUser user = new()
             {
@@ -41,42 +48,70 @@ namespace gRide.Controllers
 
             if (result.Succeeded)
             {
-                return RedirectToAction(nameof(Index), "Home");
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var confirmationLink = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, token }, protocol: Request.Scheme);
+                await _mailSender.SendAsync("noreplygRideTeam@gride.com", user.Email,
+                    "gRide Team - confirm your email address",
+                    $"In order to confirm your email address click on this link: {confirmationLink}");
+                return View(nameof(Login));
             }
             else
             {
                 foreach (var error in result.Errors)
                 {
                     if (error.Code.Contains("Password"))
-                    {
                         ModelState.AddModelError("Password", error.Description);
-                    }
                     else if (error.Code.Contains("Email"))
-                    {
                         ModelState.AddModelError("Email", error.Description);
-                    }
                     else if (error.Code.Contains("UserName"))
-                    {
                         ModelState.AddModelError("UserName", error.Description);
-                    }
                 }
                 return View(nameof(Register));
             }
         }
+        public async Task<IActionResult> ConfirmEmailAsync(string userId, string token)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+
+            if (user == null)
+            {
+                ViewBag.Message = "Failed to confirm email address";
+                return View();
+            }
+
+            var confirmCheckResult = await _userManager.IsEmailConfirmedAsync(user);
+            if (confirmCheckResult.Equals(true))
+                return NotFound();
+
+            var confirmResult = await _userManager.ConfirmEmailAsync(user, token);
+            if (!confirmResult.Succeeded)
+            {
+                ViewBag.Message = "Failed to confirm email address";
+                return View();
+            }
+
+            ViewBag.Message = "Email address has been successfully confirmed";
+            return View();
+        }
 
         public IActionResult Login()
         {
-            if (User.Identity.IsAuthenticated) return RedirectToAction(nameof(Index), "Home");
-            else return View();
+            if (User.Identity.IsAuthenticated) 
+                return RedirectToAction(nameof(Index), "Home");
+            
+            return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> LoginAsync(LoginViewModel loginViewModel)
         {
-            if (!ModelState.IsValid) return View();
+            if (!ModelState.IsValid) 
+                return View();
 
-            var user = _dbContext.Users.FirstOrDefault(u => u.Email == loginViewModel.Email);
-            if (user == null) return View();
+            var user = await _userManager.FindByEmailAsync(loginViewModel.Email);
+
+            if (user == null) 
+                return View();
 
             SignInResult result = await _signInManager.PasswordSignInAsync(user, loginViewModel.Password, loginViewModel.RemeberMe, false);
 
@@ -86,7 +121,9 @@ namespace gRide.Controllers
             }
             else
             {
-                ModelState.AddModelError(string.Empty, "Invalid log in attempt");
+                bool isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
+                string message = isEmailConfirmed ? "Invalid log in attempt" : "In order to log in please confirm your email address";
+                ModelState.AddModelError(string.Empty, message);
                 return View(nameof(Login));
             }
         }

@@ -1,4 +1,5 @@
 using gRide.Data;
+using gRide.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -14,22 +15,28 @@ conStrBuilder.Password = builder.Configuration["DbSettings:Password"];
 builder.Services.AddDbContext<gRideDbContext>(options =>
     options.UseNpgsql(conStrBuilder.ConnectionString));
 
+//Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
-    //options.SignIn.RequireConfirmedAccount = true;
-})
-    .AddEntityFrameworkStores<gRideDbContext>();
-
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    // User settings.
     options.User.RequireUniqueEmail = true;
-});
+    options.SignIn.RequireConfirmedEmail = true;
+})
+    .AddEntityFrameworkStores<gRideDbContext>()
+    .AddDefaultTokenProviders();
 
 builder.Services.ConfigureApplicationCookie(options =>
 {
     options.ExpireTimeSpan = TimeSpan.FromDays(14);
 });
+
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+{
+    options.TokenLifespan = TimeSpan.FromDays(2);
+});
+
+//Mail sender
+builder.Services.AddSingleton<IMailSender, MailSender>();
+builder.Services.Configure<MailSenderSettings>(builder.Configuration.GetSection("MailSenderSettings"));
 
 var app = builder.Build();
 
