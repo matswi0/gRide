@@ -8,14 +8,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-//Database initialization
+
+    //Database
 var conStrBuilder = new NpgsqlConnectionStringBuilder(builder.Configuration.GetConnectionString("DefaultConnection"));
 conStrBuilder.Username = builder.Configuration["DbSettings:Username"];
 conStrBuilder.Password = builder.Configuration["DbSettings:Password"];
 builder.Services.AddDbContext<gRideDbContext>(options =>
     options.UseNpgsql(conStrBuilder.ConnectionString));
 
-//Identity
+    //Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
     options.User.RequireUniqueEmail = true;
@@ -25,18 +26,15 @@ builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
     .AddDefaultTokenProviders();
 
 builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.ExpireTimeSpan = TimeSpan.FromDays(14);
-});
+    options.ExpireTimeSpan = TimeSpan.FromDays(14));
 
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
-{
-    options.TokenLifespan = TimeSpan.FromDays(2);
-});
+    options.TokenLifespan = TimeSpan.FromHours(2));
 
-//Mail sender
+    //Mail sender
 builder.Services.AddSingleton<IMailSender, MailSender>();
-builder.Services.Configure<MailSenderSettings>(builder.Configuration.GetSection("MailSenderSettings"));
+builder.Services.Configure<MailSenderSettings>(
+    builder.Configuration.GetSection("MailSenderSettings"));
 
 var app = builder.Build();
 

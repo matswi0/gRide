@@ -15,7 +15,7 @@ namespace gRide.Controllers
         private readonly gRideDbContext _dbContext;
         private readonly IMailSender _mailSender;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager, 
+        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager,
             gRideDbContext dbContext, IMailSender mailSender)
         {
             _userManager = userManager;
@@ -26,16 +26,16 @@ namespace gRide.Controllers
 
         public IActionResult Register()
         {
-            if (User.Identity.IsAuthenticated) 
-                return RedirectToAction(nameof(Index) , "Home");
-            
+            if (User.Identity.IsAuthenticated)
+                return RedirectToAction(nameof(Index), "Home");
+
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> RegisterAsync(RegisterViewModel registerViewModel)
         {
-            if (!ModelState.IsValid) 
+            if (!ModelState.IsValid)
                 return View(nameof(Register));
 
             IdentityUser user = new()
@@ -69,6 +69,7 @@ namespace gRide.Controllers
                 return View(nameof(Register));
             }
         }
+
         public async Task<IActionResult> ConfirmEmailAsync(string userId, string token)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -96,21 +97,21 @@ namespace gRide.Controllers
 
         public IActionResult Login()
         {
-            if (User.Identity.IsAuthenticated) 
+            if (User.Identity.IsAuthenticated)
                 return RedirectToAction(nameof(Index), "Home");
-            
+
             return View();
         }
 
         [HttpPost]
         public async Task<IActionResult> LoginAsync(LoginViewModel loginViewModel)
         {
-            if (!ModelState.IsValid) 
+            if (!ModelState.IsValid)
                 return View();
 
             var user = await _userManager.FindByEmailAsync(loginViewModel.Email);
 
-            if (user == null) 
+            if (user == null)
                 return View();
 
             SignInResult result = await _signInManager.PasswordSignInAsync(user, loginViewModel.Password, loginViewModel.RemeberMe, false);
@@ -133,6 +134,67 @@ namespace gRide.Controllers
         {
             await _signInManager.SignOutAsync();
             return RedirectToAction(nameof(Index), "Home");
+        }
+
+        public IActionResult ForgotPassword()
+        {
+            if (User.Identity.IsAuthenticated)
+                return RedirectToAction(nameof(Index), "Home");
+
+            return View();
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ForgotPasswordAsync(ForgotPasswordViewModel forgotPasswordViewModel)
+        {
+            var user = await _userManager.FindByEmailAsync(forgotPasswordViewModel.Email);
+
+            if (!ModelState.IsValid)
+                return View();
+            if (user == null || !user.EmailConfirmed)
+            {
+                ModelState.AddModelError("Email", "There is no account associated with this email address");
+                return View(nameof(ForgotPassword));
+            }
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var passwordResetLink = Url.Action("ResetPassword", "Account", new { userId = user.Id, token }, protocol: Request.Scheme);
+            await _mailSender.SendAsync("noreplygRideTeam@gride.com", user.Email,
+                "gRide Team - password reset",
+                $"In order to reset your password click on this link: {passwordResetLink}");
+            return RedirectToAction(nameof(Index), "Home");
+        }
+
+        public async Task<IActionResult> ResetPasswordAsync(string userId, string token)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            var isTokenValid = await _userManager.VerifyUserTokenAsync(user, _userManager.Options.Tokens.PasswordResetTokenProvider, 
+                "ResetPassword", token);
+            if (User.Identity.IsAuthenticated || !isTokenValid)
+                return NotFound();
+
+            return View(new ResetPasswordViewModel { Token = token, UserId = userId });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ResetPasswordAsync(ResetPasswordViewModel resetPasswordViewModel)
+        {
+            if (!ModelState.IsValid)
+                return View(resetPasswordViewModel);
+
+            IdentityUser user = await _userManager.FindByIdAsync(resetPasswordViewModel.UserId);
+            if(user == null)
+                return RedirectToAction(nameof(Index), "Home");
+
+            IdentityResult result = await _userManager.ResetPasswordAsync(user, resetPasswordViewModel.Token, resetPasswordViewModel.Password);
+            if(!result.Succeeded)
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+                return View();
+            }
+            return View(nameof(Login));
         }
     }
 }

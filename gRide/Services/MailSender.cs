@@ -17,6 +17,7 @@ namespace gRide.Services
             MailMessage message = new(from, to, subject, body);
             SmtpClient client = new(_mailSenderSettings.Value.Host, _mailSenderSettings.Value.Port);
             client.Credentials = new NetworkCredential(_mailSenderSettings.Value.Login, _mailSenderSettings.Value.Password);
+            client.EnableSsl = true;
             try
             {
                 await client.SendMailAsync(message);
