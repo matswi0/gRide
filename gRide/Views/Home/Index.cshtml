@@ -1,8 +1,113 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model gRide.ViewModels.RegisterViewModel
+@{
+    ViewData["Title"] = "gRide";
+    var emailErrors = ViewData.ModelState.Where(item => item.Key.Equals("Email")).Select(x => x.Value.Errors);
+    var passwordErrors = ViewData.ModelState.Where(item => item.Key.Equals("Password")).Select(x => x.Value.Errors);
+    var userNameErrors = ViewData.ModelState.Where(item => item.Key.Equals("UserName")).Select(x => x.Value.Errors);
 }
-
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="row">
+    <div class="col-12 text-center mt-4">
+            <h3 class="fw-lighter text-muted">Become part of our motorcycle community</h3>
+        </div>
+    <div class="col-10 offset-1 col-sm-8 offset-sm-2 col-lg-6 offset-lg-3 col-xl-4 offset-xl-4 mt-2">
+        <div class="bg-light shadow-lg border rounded-3 d-flex justify-content-center">
+            <form asp-controller="Account" asp-action="Register" method="post" class="my-4">
+                <div class="form-group text-center mb-4">
+                    <span class="text-secondary fw-light">Using email address</span>
+                </div>
+                <div class="form-group mx-4 mb-4">
+                    <input asp-for="Email" class="form-control" id="inputEmail" placeholder="Email" />
+                    @if (emailErrors != null)
+                    {
+                        <ul>
+                            @foreach (var error in emailErrors)
+                            {
+                                @foreach (var message in error)
+                                {
+                                    <li class="text-danger fw-bold">
+                                        <span>@message.ErrorMessage</span>
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    }
+                </div>
+                <div class="form-group mx-4 mb-4">
+                    <input asp-for="UserName" class="form-control" id="inputUserName" placeholder="Username" />
+                    @if (userNameErrors != null)
+                    {
+                        <ul>
+                            @foreach (var error in userNameErrors)
+                            {
+                                @foreach (var message in error)
+                                {
+                                    <li class="text-danger fw-bold">
+                                        <span>@message.ErrorMessage</span>
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    }
+                </div>
+                <div class="form-group mx-4 mb-4">
+                    <input asp-for="Password" class="form-control" id="inputPassword" placeholder="Password" />
+                    @if (passwordErrors != null)
+                    {
+                        <ul>
+                            @foreach (var error in passwordErrors)
+                            {
+                                @foreach (var message in error)
+                                {
+                                    <li class="text-danger fw-bold">
+                                        <span>@message.ErrorMessage</span>
+                                    </li>
+                                }
+                            }
+                        </ul>
+                    }
+                </div>
+                <div class="input-group">
+                    <input asp-for="ReTypePassword" class="form-control ms-4" id="inputReTypePassword" placeholder="Confirm Password" />
+                    <button type="submit" class="btn btn-sm btn-outline-secondary me-4">Sign In</button>
+                </div>
+                <div class="form-group mx-4 mb-4">
+                    @if (ViewData.ModelState["ReTypePassword"] != null && ViewData.ModelState["ReTypePassword"].Errors.Any())
+                    {
+                        <ul>
+                            <li class="text-danger fw-bold">
+                                <span asp-validation-for="ReTypePassword"></span>
+                            </li>
+                        </ul>
+                    }
+                </div>
+                <div class="form-group text-center mt-4">
+                    <span class="text-secondary fw-light">Already a Member?</span>
+                    <a asp-controller ="Account" asp-action="Login"class="text-secondary text-decoration-none fw-bold">Log in</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="row my-2">
+    <div class="col-10 offset-1 col-sm-8 offset-sm-2 col-lg-6 offset-lg-3 col-xl-4 offset-xl-4 text-center">
+        <h5 class="fw-lighter text-muted">or</h5>
+    </div>
+</div>
+<div class="row">
+    <div class="col-10 offset-1 col-sm-8 offset-sm-2 col-lg-6 offset-lg-3 col-xl-4 offset-xl-4 mb-xl-4">
+        <div class="bg-light shadow-lg border rounded-3 d-flex justify-content-center">
+            <form asp-controller="Account" asp-action="ExternalLogin" method="post" class="w-100 my-4">
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary mx-5 mx-lg-4 my-2" name="provider" value="Facebook">
+                        <object type="image/svg+xml" data="~/img/svg/facebook.svg" class="align-middle"></object>
+                        <span class="align-middle fw-bold">Sing up with Facebook</span>
+                    </button>
+                    <button type="submit" class="btn btn- btn-outline-secondary text-black mx-5 mx-lg-4 my-2" name="provider" value="Google">
+                        <object type="image/svg+xml" data="~/img/svg/google.svg" class="align-middle"></object>
+                        <span class="align-middle fw-bold">Sing up with Google</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>

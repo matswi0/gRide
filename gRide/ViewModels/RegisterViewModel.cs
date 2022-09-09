@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Authentication;
+using System.ComponentModel.DataAnnotations;
 using System.Xml.Linq;
 
 namespace gRide.ViewModels
@@ -11,8 +12,10 @@ namespace gRide.ViewModels
         public string UserName { get; set; }
 
         [DataType(DataType.Password)]
-        [Display(Name = "Re-type password")]
+        [Display(Name = "Confirm password")]
         [Compare("Password", ErrorMessage = "Passwords does not match.")]
         public string ReTypePassword { get; set; }
+        public IEnumerable<AuthenticationScheme> ExternalLoginProviders { get; set; } = new List<AuthenticationScheme>();
+
     }
 }

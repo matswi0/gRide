@@ -65,7 +65,11 @@
     <div class="form-group py-2">
         <label asp-for="ReTypePassword" class="pb-1"></label>
         <input asp-for="ReTypePassword" class="form-control" id="inputReTypePassword" />
-        <span asp-validation-for="ReTypePassword" class="text-danger"></span>
+        <ul>
+            <li>
+                <span asp-validation-for="ReTypePassword" class="text-danger"></span>
+            </li>
+        </ul>
     </div>
     <div class="row">
         <div class="col-12 text-end">

@@ -4,6 +4,7 @@ using gRide.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace gRide.Controllers
@@ -36,7 +37,7 @@ namespace gRide.Controllers
         public async Task<IActionResult> RegisterAsync(RegisterViewModel registerViewModel)
         {
             if (!ModelState.IsValid)
-                return View(nameof(Register));
+                return View("Views/Home/Index.cshtml");
 
             IdentityUser user = new()
             {
@@ -53,7 +54,7 @@ namespace gRide.Controllers
                 await _mailSender.SendAsync("noreplygRideTeam@gride.com", user.Email,
                     "gRide Team - confirm your email address",
                     $"In order to confirm your email address click on this link: {confirmationLink}");
-                return View(nameof(Login));
+                return View("Login");
             }
             else
             {
@@ -66,7 +67,7 @@ namespace gRide.Controllers
                     else if (error.Code.Contains("UserName"))
                         ModelState.AddModelError("UserName", error.Description);
                 }
-                return View(nameof(Register));
+                return View("Views/Home/Index.cshtml");
             }
         }
 
@@ -95,11 +96,10 @@ namespace gRide.Controllers
             return View();
         }
 
-        public IActionResult Login()
+        public async Task<IActionResult> LoginAsync()
         {
             if (User.Identity.IsAuthenticated)
                 return RedirectToAction(nameof(Index), "Home");
-
             return View();
         }
 
@@ -118,15 +118,42 @@ namespace gRide.Controllers
 
             if (result.Succeeded)
             {
-                return RedirectToAction(nameof(Login));
+                return RedirectToAction("Login");
             }
             else
             {
                 bool isEmailConfirmed = await _userManager.IsEmailConfirmedAsync(user);
                 string message = isEmailConfirmed ? "Invalid log in attempt" : "In order to log in please confirm your email address";
                 ModelState.AddModelError(string.Empty, message);
-                return View(nameof(Login));
+                return View("Login");
             }
+        }
+
+        [HttpPost]
+        public IActionResult ExternalLogin(string provider)
+        {
+            var redirectUrl = Url.Action("ExternalLoginCallback", "Account");
+            var properties = _signInManager.ConfigureExternalAuthenticationProperties(provider, redirectUrl);
+            return Challenge(properties, provider);
+        }
+
+        public async Task<IActionResult> ExternalLoginCallbackAsync(string provider)
+        {
+            var loginInfo = await _signInManager.GetExternalLoginInfoAsync();
+            var emailClaim = loginInfo.Principal.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Email);
+            var nameClaim = loginInfo.Principal.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Name);
+
+            if(emailClaim == null && nameClaim == null)
+                return RedirectToAction(nameof(Index), "Home");
+
+            IdentityUser user = new()
+            {
+                Email = emailClaim.Value,
+                UserName = nameClaim.Value
+            };
+
+            await _signInManager.SignInAsync(user, false);
+            return RedirectToAction(nameof(Index), "Home");
         }
 
         [Authorize]
@@ -136,12 +163,9 @@ namespace gRide.Controllers
             return RedirectToAction(nameof(Index), "Home");
         }
 
-        public IActionResult ForgotPassword()
+        public IActionResult ForgotPasswordPartial()
         {
-            if (User.Identity.IsAuthenticated)
-                return RedirectToAction(nameof(Index), "Home");
-
-            return View();
+            return PartialView("_ForgotPassword");
         }
 
         [HttpPost]
@@ -150,11 +174,11 @@ namespace gRide.Controllers
             var user = await _userManager.FindByEmailAsync(forgotPasswordViewModel.Email);
 
             if (!ModelState.IsValid)
-                return View();
+                return View("Views/Account/Login.cshtml");
             if (user == null || !user.EmailConfirmed)
             {
-                ModelState.AddModelError("Email", "There is no account associated with this email address");
-                return View(nameof(ForgotPassword));
+                ViewBag.Message = "There is no account associated with this email address";
+                return RedirectToAction("Login");
             }
             var token = await _userManager.GeneratePasswordResetTokenAsync(user);
             var passwordResetLink = Url.Action("ResetPassword", "Account", new { userId = user.Id, token }, protocol: Request.Scheme);
@@ -194,7 +218,7 @@ namespace gRide.Controllers
                 }
                 return View();
             }
-            return View(nameof(Login));
+            return View("Login");
         }
     }
 }
