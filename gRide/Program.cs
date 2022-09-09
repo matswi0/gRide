@@ -1,4 +1,5 @@
 using gRide.Data;
+using gRide.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
@@ -7,24 +8,45 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-//Database initialization
+
+    //Database
 var conStrBuilder = new NpgsqlConnectionStringBuilder(builder.Configuration.GetConnectionString("DefaultConnection"));
 conStrBuilder.Username = builder.Configuration["DbSettings:Username"];
 conStrBuilder.Password = builder.Configuration["DbSettings:Password"];
 builder.Services.AddDbContext<gRideDbContext>(options =>
     options.UseNpgsql(conStrBuilder.ConnectionString));
 
+    //Identity
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
 {
-    //options.SignIn.RequireConfirmedAccount = true;
-})
-    .AddEntityFrameworkStores<gRideDbContext>();
-
-builder.Services.Configure<IdentityOptions>(options =>
-{
-    // User settings.
     options.User.RequireUniqueEmail = true;
-});
+    options.SignIn.RequireConfirmedEmail = true;
+})
+    .AddEntityFrameworkStores<gRideDbContext>()
+    .AddDefaultTokenProviders();
+
+builder.Services.ConfigureApplicationCookie(options =>
+    options.ExpireTimeSpan = TimeSpan.FromDays(14));
+
+builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+    options.TokenLifespan = TimeSpan.FromHours(2));
+
+builder.Services.AddAuthentication()
+    .AddFacebook(facebookOptions =>
+    {
+        facebookOptions.AppId = builder.Configuration["Authentication:Facebook:AppId"];
+        facebookOptions.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+    })
+    .AddGoogle(googleOptions =>
+    {
+        googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+        googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    });
+
+    //Mail sender
+builder.Services.AddSingleton<IMailSender, MailSender>();
+builder.Services.Configure<MailSenderSettings>(
+    builder.Configuration.GetSection("MailSenderSettings"));
 
 var app = builder.Build();
 
