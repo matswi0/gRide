@@ -45,8 +45,10 @@ builder.Services.AddAuthentication()
 
     //Mail sender
 builder.Services.AddSingleton<IMailSender, MailSender>();
-builder.Services.Configure<MailSenderSettings>(
-    builder.Configuration.GetSection("MailSenderSettings"));
+var mailSenderConfig = builder.Configuration.GetSection("MailSenderSettings");
+mailSenderConfig["Login"] = builder.Configuration["MailSender:Login"];
+mailSenderConfig["Password"] = builder.Configuration["MailSender:Password"];
+builder.Services.Configure<MailSenderSettings>(mailSenderConfig);
 
 var app = builder.Build();
 
