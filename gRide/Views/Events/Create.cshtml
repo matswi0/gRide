@@ -1,0 +1,83 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<h5>Create event</h5>
+<div id="map" style="width: 100%; height: 600px"></div>
+<div id="marker" title="Marker"></div>
+<!-- Popup -->
+<div id="popup"></div>
+<a target="_blank" href="https://icons8.com/icon/30568/location">Location</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+@section Scripts
+{
+    <script>
+        const map = new ol.Map({
+            target: 'map',
+            layers: [
+                new ol.layer.Tile({
+                    source: new ol.source.OSM()
+                })
+            ],
+            view: new ol.View({
+                center: ol.proj.fromLonLat([21.566870, 53.076271]),
+                zoom: 18
+            })
+        });
+
+        const popup = new ol.Overlay({
+            element: document.getElementById('popup'),
+        });
+        map.addOverlay(popup);
+
+
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const pos = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude,
+                    };
+                    map.getView().setCenter(ol.proj.transform([pos.lng, pos.lat], 'EPSG:4326', 'EPSG:3857'));
+                },
+                () => {
+                    handleLocationError(true, popup, map.getView().getCenter());
+                }
+            );
+        } else {
+            // Browser doesn't support Geolocation
+            handleLocationError(false, popup, map.getView().getCenter());
+        }
+
+        function handleLocationError(browserHasGeolocation, popup, pos) {
+            const element = popup.getElement();
+            popup.setPosition(pos);
+            let popover = bootstrap.Popover.getInstance(element);
+            if (popover) {
+                popover.dispose();
+            }
+            let content = browserHasGeolocation
+                ? "Error: The Geolocation service failed."
+                : "Error: Your browser doesn't support geolocation.";
+            popover = new bootstrap.Popover(element, {
+                animation: false,
+                container: element,
+                content: content,
+                html: true,
+                placement: 'top',
+                title: 'Error',
+            });
+            popover.show();
+        }
+        let geocoder = new Geocoder('nominatim', {
+            provider: 'osm',
+            lang: 'pl-PL',
+            placeholder: 'Search for ...',
+            targetType: 'text-input',
+            limit: 5,
+            keepOpen: true
+        });
+        map.addControl(geocoder);
+
+    </script>
+}
