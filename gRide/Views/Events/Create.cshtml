@@ -12,6 +12,10 @@
 @section Scripts
 {
     <script>
+        let view = new ol.View({
+            center: ol.proj.fromLonLat([21.566870, 53.076271]),
+            zoom: 12
+        });
         const map = new ol.Map({
             target: 'map',
             layers: [
@@ -19,10 +23,7 @@
                     source: new ol.source.OSM()
                 })
             ],
-            view: new ol.View({
-                center: ol.proj.fromLonLat([21.566870, 53.076271]),
-                zoom: 18
-            })
+            view: view
         });
 
         const popup = new ol.Overlay({
@@ -73,11 +74,21 @@
             provider: 'osm',
             lang: 'pl-PL',
             placeholder: 'Search for ...',
-            targetType: 'text-input',
+            targetType: 'glass-button',
             limit: 5,
-            keepOpen: true
+            keepOpen: false,
+            preventDefault: true,
+            autoComplete: true
         });
         map.addControl(geocoder);
+        geocoder.on('addresschosen', function (evt) {
+            let center = ol.proj.fromLonLat([evt.place.lon, evt.place.lat]);
+            view.animate({
+                center: center,
+                zoom: 16,
+                duration: 1500
+            });
+        });
 
     </script>
 }
