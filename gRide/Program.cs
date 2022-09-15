@@ -17,7 +17,7 @@ builder.Services.AddDbContext<gRideDbContext>(options =>
     options.UseNpgsql(conStrBuilder.ConnectionString));
 
     //Identity
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
     options.User.RequireUniqueEmail = true;
     options.SignIn.RequireConfirmedEmail = true;

@@ -11,12 +11,12 @@ namespace gRide.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly gRideDbContext _dbContext;
         private readonly IMailSender _mailSender;
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager,
+        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,
             gRideDbContext dbContext, IMailSender mailSender)
         {
             _userManager = userManager;
@@ -39,7 +39,7 @@ namespace gRide.Controllers
             if (!ModelState.IsValid)
                 return View("Views/Home/Index.cshtml");
 
-            IdentityUser user = new()
+            AppUser user = new()
             {
                 Email = registerViewModel.Email,
                 UserName = registerViewModel.UserName,
@@ -146,7 +146,7 @@ namespace gRide.Controllers
             if(emailClaim == null && nameClaim == null)
                 return RedirectToAction(nameof(Index), "Home");
 
-            IdentityUser user = new()
+            AppUser user = new()
             {
                 Email = emailClaim.Value,
                 UserName = nameClaim.Value
@@ -205,7 +205,7 @@ namespace gRide.Controllers
             if (!ModelState.IsValid)
                 return View(resetPasswordViewModel);
 
-            IdentityUser user = await _userManager.FindByIdAsync(resetPasswordViewModel.UserId);
+            AppUser user = await _userManager.FindByIdAsync(resetPasswordViewModel.UserId);
             if(user == null)
                 return RedirectToAction(nameof(Index), "Home");
 
