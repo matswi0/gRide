@@ -15,14 +15,16 @@ namespace gRide.Controllers
         private readonly SignInManager<AppUser> _signInManager;
         private readonly gRideDbContext _dbContext;
         private readonly IMailSender _mailSender;
+        private readonly IWebHostEnvironment _env;
 
         public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,
-            gRideDbContext dbContext, IMailSender mailSender)
+            gRideDbContext dbContext, IMailSender mailSender, IWebHostEnvironment env)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _dbContext = dbContext;
             _mailSender = mailSender;
+            _env = env;
         }
 
         public IActionResult Register()
@@ -38,6 +40,8 @@ namespace gRide.Controllers
         {
             if (!ModelState.IsValid)
                 return View("Views/Home/Index.cshtml");
+
+/*            var profilePicture = _env.WebRootFileProvider.GetFileInfo("img/profile_picture.png"); //?????????????????*/
 
             AppUser user = new()
             {

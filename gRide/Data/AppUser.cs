@@ -4,6 +4,6 @@ namespace gRide.Data
 {
     public class AppUser : IdentityUser
     {
-        public byte[] ProfilePicture { get; set; }
+        public byte[]? ProfilePicture { get; set; }
     }
 }
