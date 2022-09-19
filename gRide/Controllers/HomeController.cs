@@ -20,6 +20,8 @@ namespace gRide.Controllers
 
         public async Task<IActionResult> IndexAsync()
         {
+            if (User.Identity.IsAuthenticated)
+                return RedirectToAction(nameof(Index), "Dashboard");
             var externalLoginProviders = await _signInManager.GetExternalAuthenticationSchemesAsync();
             return View(new RegisterViewModel { ExternalLoginProviders = externalLoginProviders });
         }

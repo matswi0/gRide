@@ -4,6 +4,7 @@ using gRide.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 using System.Security.Claims;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
@@ -27,26 +28,20 @@ namespace gRide.Controllers
             _env = env;
         }
 
-        public IActionResult Register()
-        {
-            if (User.Identity.IsAuthenticated)
-                return RedirectToAction(nameof(Index), "Home");
-
-            return View();
-        }
-
         [HttpPost]
         public async Task<IActionResult> RegisterAsync(RegisterViewModel registerViewModel)
         {
             if (!ModelState.IsValid)
                 return View("Views/Home/Index.cshtml");
 
-/*            var profilePicture = _env.WebRootFileProvider.GetFileInfo("img/profile_picture.png"); //?????????????????*/
+            string path = Path.Combine(_env.WebRootPath, "img", "profile_picture.png"); // walidacja istnienia
+            byte[] profile_picture = await System.IO.File.ReadAllBytesAsync(path);
 
             AppUser user = new()
             {
                 Email = registerViewModel.Email,
                 UserName = registerViewModel.UserName,
+                ProfilePicture = profile_picture
             };
 
             IdentityResult result = await this._userManager.CreateAsync(user, registerViewModel.Password);
@@ -100,10 +95,10 @@ namespace gRide.Controllers
             return View();
         }
 
-        public async Task<IActionResult> LoginAsync()
+        public IActionResult Login()
         {
             if (User.Identity.IsAuthenticated)
-                return RedirectToAction(nameof(Index), "Home");
+                return RedirectToAction(nameof(Index), "Dashboard");
             return View();
         }
 
@@ -122,7 +117,7 @@ namespace gRide.Controllers
 
             if (result.Succeeded)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(nameof(Index), "Dashboard");
             }
             else
             {
