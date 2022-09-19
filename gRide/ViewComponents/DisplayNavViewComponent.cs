@@ -18,7 +18,7 @@ namespace gRide.ViewComponents
         public async Task<IViewComponentResult> InvokeAsync()
         {
             if (!User.Identity.IsAuthenticated)
-                return View(new NavViewModel { });
+                return Content(string.Empty);
             AppUser user = await _userManager.FindByNameAsync(User.Identity.Name);
             string byteArrayToBase64 = Convert.ToBase64String(user.ProfilePicture);
             string imgDataURL = $"data:image/png;base64,{byteArrayToBase64}";

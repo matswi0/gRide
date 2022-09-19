@@ -1,7 +1,11 @@
-﻿namespace gRide.ViewModels
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
+
+namespace gRide.ViewModels
 {
     public class EditProfileViewModel
     {
-        public byte[] ProfilePicture { get; set; }
+        [Required, DisplayName("Profile picture")]
+        public IFormFile ProfilePicture { get; set; }
     }
 }

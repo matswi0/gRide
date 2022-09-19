@@ -17,6 +17,7 @@ namespace gRide.Controllers
         private readonly gRideDbContext _dbContext;
         private readonly IMailSender _mailSender;
         private readonly IWebHostEnvironment _env;
+        private const string defaultProfilePicture = "profile_picture.png";
 
         public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,
             gRideDbContext dbContext, IMailSender mailSender, IWebHostEnvironment env)
@@ -34,8 +35,16 @@ namespace gRide.Controllers
             if (!ModelState.IsValid)
                 return View("Views/Home/Index.cshtml");
 
-            string path = Path.Combine(_env.WebRootPath, "img", "profile_picture.png"); // walidacja istnienia
-            byte[] profile_picture = await System.IO.File.ReadAllBytesAsync(path);
+            byte[] profile_picture;
+            try
+            {
+                string path = Path.Combine(_env.WebRootPath, "img", defaultProfilePicture);
+                profile_picture = await System.IO.File.ReadAllBytesAsync(path);
+            }
+            catch (Exception)
+            {
+                return RedirectToAction("Error", "Home");
+            }
 
             AppUser user = new()
             {
@@ -44,8 +53,7 @@ namespace gRide.Controllers
                 ProfilePicture = profile_picture
             };
 
-            IdentityResult result = await this._userManager.CreateAsync(user, registerViewModel.Password);
-
+            IdentityResult result = await _userManager.CreateAsync(user, registerViewModel.Password);
             if (result.Succeeded)
             {
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -53,7 +61,7 @@ namespace gRide.Controllers
                 await _mailSender.SendAsync("noreplygRideTeam@gride.com", user.Email,
                     "gRide Team - confirm your email address",
                     $"In order to confirm your email address click on this link: {confirmationLink}");
-                return View("Login");
+                return View(nameof(Login));
             }
             else
             {
@@ -159,7 +167,7 @@ namespace gRide.Controllers
         public async Task<IActionResult> LogoutAsync()
         {
             await _signInManager.SignOutAsync();
-            return RedirectToAction(nameof(Index), "Home");
+            return RedirectToAction(nameof(Login));
         }
 
         public IActionResult ForgotPasswordPartial()
