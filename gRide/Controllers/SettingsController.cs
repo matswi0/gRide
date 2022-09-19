@@ -22,17 +22,32 @@ namespace gRide.Controllers
         }
 
         [HttpPost]
-        public async Task <IActionResult> ChangePictureAsync(EditProfileViewModel editProfileViewModel)
+        public async Task <IActionResult> UpdatePictureAsync(EditProfileViewModel editProfileViewModel)
         {
+            if (!ModelState.IsValid)
+            {
+                ModelState.AddModelError("ProfilePicture", "Failed to update profile picture");
+                return View(nameof(Index));
+            }
+
             AppUser user = await _userManager.GetUserAsync(User);
             using (MemoryStream ms = new())
             {
-                var memoryStream = new MemoryStream();
-                await editProfileViewModel.ProfilePicture.CopyToAsync(memoryStream);
-                user.ProfilePicture = memoryStream.ToArray();
+                await editProfileViewModel.ProfilePicture.CopyToAsync(ms);
+                user.ProfilePicture = ms.ToArray();
             }
-            await _userManager.UpdateAsync(user);
-            return View(nameof(Index));
+            var result = await _userManager.UpdateAsync(user);
+
+            if (result.Succeeded)
+                return RedirectToAction("Index", "Settings");
+            else
+            {
+                foreach (var error in result.Errors)
+                {
+                    ModelState.AddModelError("ProfilePicture", error.Description);
+                }
+                return View(nameof(Index));
+            }
         }
     }
 }
