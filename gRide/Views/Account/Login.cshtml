@@ -23,6 +23,7 @@
             <form asp-controller="Account" asp-action="Login" method="post" class="my-4">
                 <div class="form-group text-center mb-4">
                     <span class="text-secondary fw-light">Using email address</span>
+                    <div asp-validation-summary="ModelOnly" class="text-danger fw-bold"></div>
                 </div>
                 <div class="form-group mx-4 mb-4">
                     <input asp-for="Email" class="form-control" id="inputEmail" placeholder="Email" />

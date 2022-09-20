@@ -25,10 +25,7 @@ namespace gRide.Controllers
         public async Task <IActionResult> UpdatePictureAsync(EditProfileViewModel editProfileViewModel)
         {
             if (!ModelState.IsValid)
-            {
-                ModelState.AddModelError("ProfilePicture", "Failed to update profile picture");
                 return View(nameof(Index));
-            }
 
             AppUser user = await _userManager.GetUserAsync(User);
             using (MemoryStream ms = new())
