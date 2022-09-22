@@ -1,4 +1,5 @@
-﻿using gRide.Models;
+﻿using gRide.Data;
+using gRide.Models;
 using gRide.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -9,9 +10,9 @@ namespace gRide.Controllers
     public class HomeController : Controller
     {
         private readonly ILogger<HomeController> _logger;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly SignInManager<AppUser> _signInManager;
 
-        public HomeController(ILogger<HomeController> logger, SignInManager<IdentityUser> signInManager)
+        public HomeController(ILogger<HomeController> logger, SignInManager<AppUser> signInManager)
         {
             _logger = logger;
             _signInManager = signInManager;
@@ -19,6 +20,8 @@ namespace gRide.Controllers
 
         public async Task<IActionResult> IndexAsync()
         {
+            if (User.Identity.IsAuthenticated)
+                return RedirectToAction(nameof(Index), "Dashboard");
             var externalLoginProviders = await _signInManager.GetExternalAuthenticationSchemesAsync();
             return View(new RegisterViewModel { ExternalLoginProviders = externalLoginProviders });
         }

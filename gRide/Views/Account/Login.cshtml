@@ -15,6 +15,11 @@
     </div>
 </div>
 <div class="row">
+    <div class="col-12 text-end my-3">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-sm btn-secondary text-decoration-none">Sign In</a>
+    </div>
+</div>
+<div class="row">
     <div class="col-12 text-center mt-4">
         <h3 class="fw-lighter text-muted">Log In</h3>
     </div>
@@ -23,6 +28,7 @@
             <form asp-controller="Account" asp-action="Login" method="post" class="my-4">
                 <div class="form-group text-center mb-4">
                     <span class="text-secondary fw-light">Using email address</span>
+                    <div asp-validation-summary="ModelOnly" class="text-danger fw-bold"></div>
                 </div>
                 <div class="form-group mx-4 mb-4">
                     <input asp-for="Email" class="form-control" id="inputEmail" placeholder="Email" />

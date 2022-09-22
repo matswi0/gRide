@@ -4,33 +4,32 @@ using gRide.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.IO;
 using System.Security.Claims;
+using System.Security.Policy;
+using System.Text.RegularExpressions;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace gRide.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly UserManager<IdentityUser> _userManager;
-        private readonly SignInManager<IdentityUser> _signInManager;
+        private readonly UserManager<AppUser> _userManager;
+        private readonly SignInManager<AppUser> _signInManager;
         private readonly gRideDbContext _dbContext;
         private readonly IMailSender _mailSender;
+        private readonly IWebHostEnvironment _env;
+        private const string defaultProfilePicture = "profile_picture.png";
 
-        public AccountController(UserManager<IdentityUser> userManager, SignInManager<IdentityUser> signInManager,
-            gRideDbContext dbContext, IMailSender mailSender)
+        public AccountController(UserManager<AppUser> userManager, SignInManager<AppUser> signInManager,
+            gRideDbContext dbContext, IMailSender mailSender, IWebHostEnvironment env)
         {
             _userManager = userManager;
             _signInManager = signInManager;
             _dbContext = dbContext;
             _mailSender = mailSender;
-        }
-
-        public IActionResult Register()
-        {
-            if (User.Identity.IsAuthenticated)
-                return RedirectToAction(nameof(Index), "Home");
-
-            return View();
+            _env = env;
         }
 
         [HttpPost]
@@ -39,14 +38,26 @@ namespace gRide.Controllers
             if (!ModelState.IsValid)
                 return View("Views/Home/Index.cshtml");
 
-            IdentityUser user = new()
+            byte[] profile_picture;
+            try
+            {
+                string path = Path.Combine(_env.WebRootPath, "img", defaultProfilePicture);
+                profile_picture = await System.IO.File.ReadAllBytesAsync(path);
+            }
+            catch (Exception)
+            {
+                return RedirectToAction("Error", "Home");
+            }
+
+            AppUser user = new()
             {
                 Email = registerViewModel.Email,
                 UserName = registerViewModel.UserName,
+                ProfilePicture = profile_picture,
+                ChosenRegisterMethod = RegisterMethod.Email
             };
 
-            IdentityResult result = await this._userManager.CreateAsync(user, registerViewModel.Password);
-
+            IdentityResult result = await _userManager.CreateAsync(user, registerViewModel.Password);
             if (result.Succeeded)
             {
                 var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
@@ -54,7 +65,7 @@ namespace gRide.Controllers
                 await _mailSender.SendAsync("noreplygRideTeam@gride.com", user.Email,
                     "gRide Team - confirm your email address",
                     $"In order to confirm your email address click on this link: {confirmationLink}");
-                return View("Login");
+                return View(nameof(Login));
             }
             else
             {
@@ -96,10 +107,10 @@ namespace gRide.Controllers
             return View();
         }
 
-        public async Task<IActionResult> LoginAsync()
+        public IActionResult Login()
         {
             if (User.Identity.IsAuthenticated)
-                return RedirectToAction(nameof(Index), "Home");
+                return RedirectToAction(nameof(Index), "Dashboard");
             return View();
         }
 
@@ -111,14 +122,17 @@ namespace gRide.Controllers
 
             var user = await _userManager.FindByEmailAsync(loginViewModel.Email);
 
-            if (user == null)
+            if (user == null || user.ChosenRegisterMethod == RegisterMethod.Social)
+            {
+                ModelState.AddModelError(string.Empty, "The username or password did not match. Please try again.");
                 return View();
+            }
 
             SignInResult result = await _signInManager.PasswordSignInAsync(user, loginViewModel.Password, loginViewModel.RemeberMe, false);
 
             if (result.Succeeded)
             {
-                return RedirectToAction("Login");
+                return RedirectToAction(nameof(Index), "Dashboard");
             }
             else
             {
@@ -142,30 +156,52 @@ namespace gRide.Controllers
             var loginInfo = await _signInManager.GetExternalLoginInfoAsync();
             var emailClaim = loginInfo.Principal.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Email);
             var nameClaim = loginInfo.Principal.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Name);
+            var profilePictureClaim = loginInfo.Principal.Claims.FirstOrDefault(claim => claim.Type == "image");
 
-            if(emailClaim == null && nameClaim == null)
-                return RedirectToAction(nameof(Index), "Home");
+            if(emailClaim == null && nameClaim == null && profilePictureClaim == null)
+                return RedirectToAction("Error", "Home");
 
-            IdentityUser user = new()
+            AppUser user = await _userManager.FindByEmailAsync(emailClaim.Value);
+            if (user != null)
             {
-                Email = emailClaim.Value,
-                UserName = nameClaim.Value
-            };
+                if (user.ChosenRegisterMethod.Equals(RegisterMethod.Email))
+                    return RedirectToAction("Error", "Home");
 
-            await _signInManager.SignInAsync(user, false);
-            return RedirectToAction(nameof(Index), "Home");
+                await _signInManager.SignInAsync(user, false);
+            }
+            else
+            {
+                byte[] profilePicture;
+
+                using (HttpClient client = new())
+                {
+                    using (var response = await client.GetAsync(profilePictureClaim.Value))
+                    {
+                        profilePicture = await response.Content.ReadAsByteArrayAsync();
+                    }
+                }
+
+                user = new()
+                {
+                    Email = emailClaim.Value,
+                    UserName = nameClaim.Value,
+                    ProfilePicture = profilePicture,
+                    ChosenRegisterMethod = RegisterMethod.Social
+                };
+                IdentityResult result = await _userManager.CreateAsync(user);
+                if(!result.Succeeded)
+                    return RedirectToAction("Error", "Home");
+
+                await _signInManager.SignInAsync(user, false);
+            }
+            return RedirectToAction(nameof(Index), "Dashboard");
         }
 
         [Authorize]
         public async Task<IActionResult> LogoutAsync()
         {
             await _signInManager.SignOutAsync();
-            return RedirectToAction(nameof(Index), "Home");
-        }
-
-        public IActionResult ForgotPasswordPartial()
-        {
-            return PartialView("_ForgotPassword");
+            return RedirectToAction(nameof(Login));
         }
 
         [HttpPost]
@@ -205,7 +241,7 @@ namespace gRide.Controllers
             if (!ModelState.IsValid)
                 return View(resetPasswordViewModel);
 
-            IdentityUser user = await _userManager.FindByIdAsync(resetPasswordViewModel.UserId);
+            AppUser user = await _userManager.FindByIdAsync(resetPasswordViewModel.UserId);
             if(user == null)
                 return RedirectToAction(nameof(Index), "Home");
 

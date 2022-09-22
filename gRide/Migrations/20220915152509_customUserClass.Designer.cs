@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using gRide.Data;
@@ -11,9 +12,10 @@ using gRide.Data;
 namespace gRide.Migrations
 {
     [DbContext(typeof(gRideDbContext))]
-    partial class gRideDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220915152509_customUserClass")]
+    partial class customUserClass
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -28,9 +30,6 @@ namespace gRide.Migrations
                         .HasColumnType("text");
 
                     b.Property<int>("AccessFailedCount")
-                        .HasColumnType("integer");
-
-                    b.Property<int>("ChosenRegisterMethod")
                         .HasColumnType("integer");
 
                     b.Property<string>("ConcurrencyStamp")

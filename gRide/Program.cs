@@ -1,8 +1,14 @@
-using gRide.Data;
+﻿using gRide.Data;
+using gRide.IdentityPolicy;
 using gRide.Services;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Google;
+using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using Npgsql;
+using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,14 +22,16 @@ conStrBuilder.Password = builder.Configuration["DbSettings:Password"];
 builder.Services.AddDbContext<gRideDbContext>(options =>
     options.UseNpgsql(conStrBuilder.ConnectionString));
 
-    //Identity
-builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>
+//Identity
+builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
 {
     options.User.RequireUniqueEmail = true;
+    options.User.AllowedUserNameCharacters = null;
     options.SignIn.RequireConfirmedEmail = true;
 })
     .AddEntityFrameworkStores<gRideDbContext>()
-    .AddDefaultTokenProviders();
+    .AddDefaultTokenProviders()
+    .AddUserManager<CustomUserManager<AppUser>>();
 
 builder.Services.ConfigureApplicationCookie(options =>
     options.ExpireTimeSpan = TimeSpan.FromDays(14));
@@ -31,16 +39,23 @@ builder.Services.ConfigureApplicationCookie(options =>
 builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
     options.TokenLifespan = TimeSpan.FromHours(2));
 
+builder.Services.AddTransient<ICustomUserValidator<AppUser>, CustomUserValidator<AppUser>>();
+
 builder.Services.AddAuthentication()
     .AddFacebook(facebookOptions =>
     {
         facebookOptions.AppId = builder.Configuration["Authentication:Facebook:AppId"];
         facebookOptions.AppSecret = builder.Configuration["Authentication:Facebook:AppSecret"];
+        facebookOptions.Fields.Add("picture");
+        facebookOptions.ClaimActions.MapJsonKey("image", "picture");
+        facebookOptions.ClaimActions.MapCustomJson("image",
+            json => json.GetProperty("picture").GetProperty("data").GetProperty("url").GetString());
     })
     .AddGoogle(googleOptions =>
     {
         googleOptions.ClientId = builder.Configuration["Authentication:Google:ClientId"];
         googleOptions.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+        googleOptions.ClaimActions.MapJsonKey("image", "picture");
     });
 
     //Mail sender

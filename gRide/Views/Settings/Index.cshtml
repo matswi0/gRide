@@ -1,0 +1,29 @@
+﻿@model gRide.ViewModels.EditProfileViewModel
+@{
+}
+
+<h3>Settings</h3>
+<form asp-controller="Settings" asp-action="UpdatePicture" enctype="multipart/form-data" method="post">
+    <dl>
+        <dd>
+            <label asp-for="ProfilePicture" class="d-block"></label>
+            <input asp-for="ProfilePicture" type="file" class="form-control" id="file-input" accept="image/*" onchange="showBtn()">
+            <span asp-validation-for="ProfilePicture"></span>
+        </dd>
+    </dl>
+    <input class="btn btn-primary visually-hidden" id="upload-btn" type="submit" value="Save" />
+</form>
+
+@section Scripts{
+    <script>
+        function showBtn(){
+            let input = $('#file-input')[0];
+            if(input.files.length == 0){
+                $('#upload-btn').addClass('visually-hidden');
+            }
+            else{
+                $('#upload-btn').removeClass('visually-hidden');
+            }
+        }
+    </script>
+}

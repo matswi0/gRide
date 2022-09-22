@@ -12,58 +12,7 @@
 
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-light navbar-expand-lg bg-light shadow-sm py-2">
-            <button class="navbar-toggler mx-2" type="button" data-bs-toggle="offcanvas" data-bs-target="#navbarOffcanvasLg" aria-controls="navbarOffcanvasLg">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <a asp-controller="Home" asp-action="Index" class="navbar-brand mx-auto mx-lg-4">gRide</a>
-            <div class="offcanvas offcanvas-start" tabindex="-1" id="navbarOffcanvasLg" aria-labelledby="navbarOffcanvasLgLabel">
-                <div class="offcanvas-header">
-                    <div class="d-flex justify-content-end w-100">
-                        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-                    </div>
-                </div>
-                <div class="offcanvas-body">
-                    <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
-                        <li class="nav-item">
-                            <a asp-controller="" asp-action="" class="nav-link active">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a asp-controller="Home" asp-action="Privacy" class="nav-link">Privacy</a>
-                        </li>
-                        <li class="nav-item">
-                            <a asp-controller="" asp-action="" class="nav-link">Contact</a>
-                        </li>
-                        @if(!User.Identity.IsAuthenticated)
-                        {
-                            <li class="nav-item mx-lg-3 d-flex align-items-center">
-                                <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-outline-secondary">Log In</a>
-                            </li>
-                        }
-                        else
-                        {
-                            <li class="nav-item dropdown mx-lg-3">
-                                <a class="nav-link dropdown-toggle" href="#" id="offcanvasNavbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <img src="~/img/profile_picture.jpg" class="img-fluid img-thumbnail rounded-circle" style="width: auto; height: 32px;" alt="User profile pciture">
-                                    <span class="text-secondary fw-light">@User.Identity.Name</span>
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="offcanvasNavbarDropdown">
-                                    <li>
-                                        <a class="dropdown-item text-center text-secondary" href="#">Settings</a></li>
-                                    <li>
-                                    </li>
-                                    <li>
-                                        <a asp-controller="Account" asp-action="Logout" class="dropdown-item text-center text-secondary">Log Out</a>
-                                    </li>
-                                </ul>
-                            </li>
-                        }
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
+    @await Component.InvokeAsync("DisplayNav")
     <div class="container">
         <main role="main">
             @RenderBody()
