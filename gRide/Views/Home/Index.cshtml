@@ -6,6 +6,11 @@
     var userNameErrors = ViewData.ModelState.Where(item => item.Key.Equals("UserName")).Select(x => x.Value.Errors);
 }
 <div class="row">
+    <div class="col-12 text-end my-3">
+        <a asp-controller="Account" asp-action="Login" class="btn btn-sm btn-secondary text-decoration-none">Log In</a>
+    </div>
+</div>
+<div class="row">
     <div class="col-12 text-center mt-4">
             <h3 class="fw-lighter text-muted">Become part of our motorcycle community</h3>
         </div>

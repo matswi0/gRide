@@ -124,7 +124,7 @@ namespace gRide.Controllers
 
             if (user == null || user.ChosenRegisterMethod == RegisterMethod.Social)
             {
-                ModelState.AddModelError(String.Empty, "The username or password did not match. Please try again.");
+                ModelState.AddModelError(string.Empty, "The username or password did not match. Please try again.");
                 return View();
             }
 
@@ -164,6 +164,9 @@ namespace gRide.Controllers
             AppUser user = await _userManager.FindByEmailAsync(emailClaim.Value);
             if (user != null)
             {
+                if (user.ChosenRegisterMethod.Equals(RegisterMethod.Email))
+                    return RedirectToAction("Error", "Home");
+
                 await _signInManager.SignInAsync(user, false);
             }
             else
@@ -174,7 +177,7 @@ namespace gRide.Controllers
                 {
                     using (var response = await client.GetAsync(profilePictureClaim.Value))
                     {
-                        profilePicture = await response.Content.ReadAsByteArrayAsync().ConfigureAwait(false);
+                        profilePicture = await response.Content.ReadAsByteArrayAsync();
                     }
                 }
 
