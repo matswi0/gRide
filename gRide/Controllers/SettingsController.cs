@@ -1,4 +1,4 @@
-﻿using gRide.Data;
+﻿using gRide.Models;
 using gRide.ViewModels;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace gRide.Controllers
 {
+    [AutoValidateAntiforgeryToken]
     public class SettingsController : Controller
     {
         private readonly UserManager<AppUser> _userManager;
@@ -16,6 +17,7 @@ namespace gRide.Controllers
             _userManager = userManager;
         }
 
+        [Authorize]
         public IActionResult Index()
         {
             return View();

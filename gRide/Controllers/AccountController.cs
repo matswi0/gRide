@@ -1,4 +1,5 @@
 ﻿using gRide.Data;
+using gRide.Models;
 using gRide.Services;
 using gRide.ViewModels;
 using Microsoft.AspNetCore.Authorization;
@@ -38,11 +39,11 @@ namespace gRide.Controllers
             if (!ModelState.IsValid)
                 return View("Views/Home/Index.cshtml");
 
-            byte[] profile_picture;
+            byte[] profilePicture;
             try
             {
                 string path = Path.Combine(_env.WebRootPath, "img", defaultProfilePicture);
-                profile_picture = await System.IO.File.ReadAllBytesAsync(path);
+                profilePicture = await System.IO.File.ReadAllBytesAsync(path);
             }
             catch (Exception)
             {
@@ -53,7 +54,7 @@ namespace gRide.Controllers
             {
                 Email = registerViewModel.Email,
                 UserName = registerViewModel.UserName,
-                ProfilePicture = profile_picture,
+                ProfilePicture = profilePicture,
                 ChosenRegisterMethod = RegisterMethod.Email
             };
 

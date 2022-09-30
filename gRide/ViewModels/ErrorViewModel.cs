@@ -1,4 +1,4 @@
-namespace gRide.Models
+namespace gRide.ViewModels
 {
     public class ErrorViewModel
     {
