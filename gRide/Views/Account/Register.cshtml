@@ -1,0 +1,79 @@
+﻿@model gRide.ViewModels.RegisterViewModel;
+@{
+    ViewData["Title"] = "Register";
+    var emailErrors = ViewData.ModelState.Where(item => item.Key.Equals("Email")).Select(x => x.Value.Errors);
+    var passwordErrors = ViewData.ModelState.Where(item => item.Key.Equals("Password")).Select(x => x.Value.Errors);
+    var userNameErrors = ViewData.ModelState.Where(item => item.Key.Equals("UserName")).Select(x => x.Value.Errors);
+}
+<h2>Sign in</h2>
+
+<form asp-controller="Account" asp-action="Register" method="post">
+    <div class="form-group py-2">
+        <label asp-for="Email" class="pb-1"></label>
+        <input asp-for="Email" class="form-control" id="inputEmail" />
+        @if (emailErrors != null)
+        {
+            <ul>
+                @foreach (var error in emailErrors)
+                {
+                    @foreach (var message in error)
+                    {
+                        <li class="text-danger">
+                            <span>@message.ErrorMessage</span>
+                        </li>
+                    }
+                }
+            </ul>
+        }
+    </div>
+    <div class="form-group py-2">
+        <label asp-for="UserName" class="pb-1"></label>
+        <input asp-for="UserName" class="form-control" id="inputUserName" />
+        @if (userNameErrors != null)
+        {
+            <ul>
+                @foreach (var error in userNameErrors)
+                {
+                    @foreach (var message in error)
+                    {
+                        <li class="text-danger">
+                            <span>@message.ErrorMessage</span>
+                        </li>
+                    }
+                }
+            </ul>
+        }
+    </div>
+    <div class="form-group py-2">
+        <label asp-for="Password" class="pb-1"></label>
+        <input asp-for="Password" class="form-control" id="inputPassword" />
+        @if (passwordErrors != null)
+        {
+            <ul>
+                @foreach (var error in passwordErrors)
+                {
+                    @foreach (var message in error)
+                    {
+                        <li class="text-danger">
+                            <span>@message.ErrorMessage</span>
+                        </li>
+                    }
+                }
+            </ul>
+        }
+    </div>
+    <div class="form-group py-2">
+        <label asp-for="ReTypePassword" class="pb-1"></label>
+        <input asp-for="ReTypePassword" class="form-control" id="inputReTypePassword" />
+        <ul>
+            <li>
+                <span asp-validation-for="ReTypePassword" class="text-danger"></span>
+            </li>
+        </ul>
+    </div>
+    <div class="row">
+        <div class="col-12 text-end">
+            <button type="submit" class="btn btn-primary">Sign in</button>
+        </div>
+    </div>
+</form>

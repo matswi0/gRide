@@ -1,0 +1,18 @@
+﻿@model gRide.Models.Event
+
+@{
+    string lat = Model.Localization.Latitude.ToString().Replace(',', '.');
+    string lon = Model.Localization.Longitude.ToString().Replace(',', '.');
+    var url = $"https://www.google.com/maps/search/?api=1&query={lat},{lon}";
+}
+
+<span>@Model.Name</span>
+
+@foreach(var item in Model.UsersLinked)
+{
+    <div>
+        <span>@item.User.UserName</span>
+    </div>
+
+}
+<a href=@url target="_blank">Google maps link</a>
