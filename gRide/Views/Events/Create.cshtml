@@ -1,37 +1,89 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
-@{
-}
-<h5>Create event</h5>
-<div id="map" style="width: 100%; height: 600px"></div>
-<div id="marker" title="Marker"></div>
-<!-- Popup -->
-<div id="popup"></div>
-<a target="_blank" href="https://icons8.com/icon/30568/location">Location</a> icon by <a target="_blank" href="https://icons8.com">Icons8</a>
+﻿@model gRide.ViewModels.NewEventViewModel
+<div class="shadow-sm rounded-3 my-3">
+    <div class="row">
+        <div class="col-10 offset-1 text-center">
+            <h4 class="text-secondary fw-light p-3">Event creator</h4>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-12">
+            <div class="swiper">
+                <!-- Additional required wrapper -->
+                <div class="swiper-wrapper">
+                    <!-- Slides -->
+                    <div class="swiper-slide">
+                        <div class="row my-3" id="creator">
+                            <partial name="_EventForm.cshtml"></partial>
+                        </div>
+                        <div class="row">
+                            <div class="col-12 col-md-10 offset-md-1">
+                                <div id="map" style="width: 100%; height: 650px; padding:50px"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="swiper-slide">
+                        <div class="row">
+                            <div class="col-8 offset-2">
+                                <h6 class="text-secondary fw-light">Invite friends:</h6>
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-10 offset-1">
+                                <div id="friends" style="height:200px; overflow-y: scroll; overflow-x: hidden;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- If we need navigation buttons -->
+                <div class="swiper-button-next text-secondary"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @section Scripts
 {
     <script>
-        let view = new ol.View({
-            center: ol.proj.fromLonLat([21.566870, 53.076271]),
+        //Map
+        const view = new ol.View({
+            center: ol.proj.fromLonLat([0, 0]),
             zoom: 12
         });
+        const marker = new ol.Feature({
+            geometry: new ol.geom.Point([[]]),
+        })
+        const markerSource = new ol.source.Vector({
+            features: [marker],
+        });
+
+        const markerStyle = new ol.style.Style({
+            image: new ol.style.Icon(({
+                anchor: [16, 0],
+                anchorXUnits: "pixels",
+                anchorYUnits: "pixels",
+                anchorOrigin: "bottom-left",
+                src: '../../img/icons8-location-32.png'
+            }))
+        });
+
         const map = new ol.Map({
             target: 'map',
             layers: [
                 new ol.layer.Tile({
                     source: new ol.source.OSM()
-                })
+                }),
+                new ol.layer.Vector({
+                    source: markerSource,
+                    style: markerStyle,
+                }),
             ],
-            view: view
+            view: view,
         });
 
         const popup = new ol.Overlay({
-            element: document.getElementById('popup'),
+            element: $('#popup')[0],
         });
         map.addOverlay(popup);
-
-
         if (navigator.geolocation) {
             navigator.geolocation.getCurrentPosition(
                 (position) => {
@@ -49,9 +101,8 @@
             // Browser doesn't support Geolocation
             handleLocationError(false, popup, map.getView().getCenter());
         }
-
         function handleLocationError(browserHasGeolocation, popup, pos) {
-            const element = popup.getElement();
+            const element = popup.element;
             popup.setPosition(pos);
             let popover = bootstrap.Popover.getInstance(element);
             if (popover) {
@@ -80,7 +131,11 @@
             preventDefault: true,
             autoComplete: true
         });
+
         map.addControl(geocoder);
+
+        let localization = {};
+
         geocoder.on('addresschosen', function (evt) {
             let center = ol.proj.fromLonLat([evt.place.lon, evt.place.lat]);
             view.animate({
@@ -88,7 +143,123 @@
                 zoom: 16,
                 duration: 1500
             });
+            localization = {
+                "lon": parseFloat(evt.place.lon),
+                "lat": parseFloat(evt.place.lat),
+                "town": evt.address.details.city,
+            };
+            marker.getGeometry().setCoordinates(evt.coordinate);
         });
 
+        map.on("singleclick", function (evt) {
+            reverseGeocode(ol.proj.toLonLat(evt.coordinate));
+            marker.getGeometry().setCoordinates(evt.coordinate);
+        })
+
+        function reverseGeocode(coords) {
+            fetch('https://nominatim.openstreetmap.org/reverse?lat=' + coords[1] + '&lon=' + coords[0]+'&format=json')
+                .then(function (response) {
+                    return response.json();
+                }).then(function (json) {
+                    if (Object.keys(json.address).includes('village')) {
+                        localization = {
+                            "lon": json.lon,
+                            "lat": json.lat,
+                            "town": json.address.village,
+                        };
+                    }
+                    else if (Object.keys(json.address).includes('city')) {
+                        localization = {
+                            "lon": json.lon,
+                            "lat": json.lat,
+                            "town": json.address.city,
+                        };
+                    }
+                    console.log(localization)
+                });
+        }
+
+        //Slider
+        const swiper = new Swiper('.swiper', {
+            direction: 'horizontal',
+            loop: false,
+            effect: 'slide',
+            allowTouchMove: false,
+        });
+        let nextBtn = $('.swiper-button-next');
+        let invitedFriends = [];
+        $('.swiper-button-next').click(function (evt) {
+            switch (swiper.activeIndex) {
+                case 0:
+                    SlickLoader.enable();
+                    let date = $('#dateInput').val();
+                    let time = $('#timeInput').val();
+                    let event = {
+                        Name: $('#nameInput').val(),
+                        Date: new Date(`${date} ${time}`),
+                        Longitude: localization.lon,
+                        Latitude: localization.lat,
+                        Town: localization.town,
+                    }
+                    $.ajax({
+                        url: "@Url.Action("NewEvent")",
+                        type: "POST",
+                        data: JSON.stringify(event),
+                        contentType: 'application/json;charset=utf-8',
+                        dataType: 'json',
+                        success: function (response) {
+                            $('#friends').html(response.data.result);
+                            $("#friends").append(`<input type="hidden" id="eventId" data-eventId=${response.eventId}>`);
+                            swiper.slideNext();
+                            SlickLoader.disable();
+                        },
+                        error: function (response) {
+                            $('#creator').html(response.responseText);
+                            SlickLoader.disable();
+                        }
+                    });
+                    break;
+                case 1:
+                    SlickLoader.enable();
+                    let id = $('#eventId')[0].getAttribute('data-eventId');
+                    let url = "@Url.Action("InviteFriends", "Events", new { id = "__eventID__" })";
+                    url = url.replace("__eventID__", id);
+                    $.ajax({
+                        url: url,
+                        type: "POST",
+                        data: JSON.stringify(invitedFriends),
+                        contentType: 'application/json;charset=utf-8',
+                        dataType: 'json',
+                        success: function (response) {
+                            SlickLoader.disable();
+                            setTimeout(function () {
+                                window.location.href = response.redirectUrl;
+                            }, 2000);
+                        },
+                        error: function (response) {
+                            console.log(response)
+                            SlickLoader.disable();
+                        }
+                    });
+                    break;
+            }
+        });
+
+        function inviteFriend(friendButton) {
+            if (friendButton.dataset.status == "pending") {
+                friendButton.dataset.status = "done";
+                invitedFriends.push(friendButton.getAttribute('data-friendId'));
+                friendButton.innerHTML = "Undo";
+                friendButton.classList.remove("btn-secondary");
+                friendButton.classList.add("btn-light");
+            }
+            else {
+                friendButton.dataset.status = "pending";
+                invitedFriends.pop(friendButton.getAttribute('data-friendId'));
+                friendButton.innerHTML = "Invite";
+                friendButton.classList.add("btn-secondary");
+                friendButton.classList.remove("btn-light");
+            }
+        }
     </script>
 }

@@ -1,5 +1,4 @@
-﻿using gRide.Data;
-using gRide.Models;
+﻿using gRide.Models;
 using gRide.ViewModels;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;

@@ -1,6 +1,6 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using gRide.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
-using System.Resources;
 
 namespace gRide.IdentityPolicy
 {

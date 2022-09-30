@@ -1,14 +1,13 @@
-﻿using gRide.Data;
+﻿using FluentValidation;
+using gRide.Data;
 using gRide.IdentityPolicy;
+using gRide.Models;
 using gRide.Services;
+using gRide.ViewModels;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Google;
-using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Npgsql;
-using System.Security.Claims;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -23,7 +22,7 @@ builder.Services.AddDbContext<gRideDbContext>(options =>
     options.UseNpgsql(conStrBuilder.ConnectionString));
 
 //Identity
-builder.Services.AddIdentity<AppUser, IdentityRole>(options =>
+builder.Services.AddIdentity<AppUser, IdentityRole<Guid>>(options =>
 {
     options.User.RequireUniqueEmail = true;
     options.User.AllowedUserNameCharacters = null;
@@ -64,6 +63,16 @@ var mailSenderConfig = builder.Configuration.GetSection("MailSenderSettings");
 mailSenderConfig["Login"] = builder.Configuration["MailSender:Login"];
 mailSenderConfig["Password"] = builder.Configuration["MailSender:Password"];
 builder.Services.Configure<MailSenderSettings>(mailSenderConfig);
+
+    //User info
+builder.Services.AddScoped<IUserInfo, UserInfo>();
+    
+    //View to string converter
+builder.Services.AddSingleton<IViewConverter, ViewConverter>();
+
+    //Validators
+builder.Services.AddScoped<IValidator<NewEventViewModel>, NewEventValidator>();
+
 
 var app = builder.Build();
 
