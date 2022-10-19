@@ -10,6 +10,6 @@ namespace gRide.Models
         public DateTime Date { get; set; }
         public AppUser Host { get; set; }
         public Localization Localization { get; set; }
-        public List<AppUserEvent> UsersLinked { get; set; }
+        public ICollection<AppUserEvent> UsersLinked { get; set; }
     }
 }

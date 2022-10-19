@@ -16,9 +16,13 @@ namespace gRide.ViewModels
     {
         public NewEventValidator()
         {
-            RuleFor(x => x.Name)
+            RuleFor(e => e.Name)
                 .NotEmpty()
                 .MaximumLength(20);
+            RuleFor(e => e.Longitude)
+                .NotEmpty();
+            RuleFor(e => e.Latitude)
+                .NotEmpty();
         }
         protected override bool PreValidate(ValidationContext<NewEventViewModel> context, ValidationResult result)
         {

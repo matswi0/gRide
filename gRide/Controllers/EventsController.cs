@@ -71,14 +71,6 @@ namespace gRide.Controllers
                 Localization = localization,
             };
 
-            AppUserEvent appUserEvent = new()
-            {
-                UserId = user.Id,
-                EventId = evt.Id,
-                UserStatus = UserStatus.Going
-            };
-
-            await _dbContext.AppUsersEvents.AddAsync(appUserEvent);
             await _dbContext.Events.AddAsync(evt);
             var addEventResul = await _dbContext.SaveChangesAsync();
 
@@ -100,7 +92,7 @@ namespace gRide.Controllers
         [HttpPost]
         public async Task<IActionResult> InviteFriendsAsync(Guid id, [FromBody] ICollection<Guid> friendsList)
         {
-            Event evt = _dbContext.Events.Where(e => e.Id.Equals(id)).Include(e => e.UsersLinked).FirstOrDefault();
+            Event evt = _dbContext.Events.Where(e => e.Id.Equals(id)).Include(e => e.UsersLinked).SingleOrDefault();
             if (evt == null) 
                 return BadRequest();
 
@@ -126,7 +118,7 @@ namespace gRide.Controllers
         [Authorize]
         public async Task<IActionResult> DisplayEvent(Guid id)
         {
-            Event evt = _dbContext.Events.Where(e => e.Id.Equals(id)).Include(e => e.Localization).Include(e => e.UsersLinked).ThenInclude(ul => ul.User).FirstOrDefault();
+            Event evt = _dbContext.Events.Where(e => e.Id.Equals(id)).Include(e => e.Localization).Include(e => e.UsersLinked).ThenInclude(ul => ul.User).SingleOrDefault();
             if(evt == null)
                 return NotFound();
             return View(evt);

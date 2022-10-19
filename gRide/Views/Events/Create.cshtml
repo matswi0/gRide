@@ -1,8 +1,8 @@
 ﻿@model gRide.ViewModels.NewEventViewModel
-<div class="shadow-sm rounded-3 my-3">
+<div class="shadow-sm rounded-3">
     <div class="row">
-        <div class="col-10 offset-1 text-center">
-            <h4 class="text-secondary fw-light p-3">Event creator</h4>
+        <div class="col-10 offset-1">
+            <h4 class="text-secondary fw-light">Event creator</h4>
         </div>
     </div>
     <div class="row">
@@ -12,12 +12,12 @@
                 <div class="swiper-wrapper">
                     <!-- Slides -->
                     <div class="swiper-slide">
-                        <div class="row my-3" id="creator">
+                        <div class="row" id="creator">
                             <partial name="_EventForm.cshtml"></partial>
                         </div>
                         <div class="row">
                             <div class="col-12 col-md-10 offset-md-1">
-                                <div id="map" style="width: 100%; height: 650px; padding:50px"></div>
+                                <div id="map" style="width: 100%; height: 500px; padding:50px"></div>
                             </div>
                         </div>
                     </div>
@@ -232,9 +232,7 @@
                         dataType: 'json',
                         success: function (response) {
                             SlickLoader.disable();
-                            setTimeout(function () {
-                                window.location.href = response.redirectUrl;
-                            }, 2000);
+                            window.location.href = response.redirectUrl;
                         },
                         error: function (response) {
                             console.log(response)

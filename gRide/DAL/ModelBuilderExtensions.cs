@@ -19,7 +19,9 @@ namespace gRide.DAL
             AppUser user3 = CreateUser("4c32b38a-4aec-4531-bc02-0cfda8e160a5", "Karol", "user3@users.net");
             AppUser user4 = CreateUser("e89503ad-21ba-4556-ac7c-e11f871f2113", "Jan", "user4@users.net");
             AppUser user5 = CreateUser("208d0cec-4783-4e15-aebe-798412bde75d", "Piotr", "user5@users.net");
-            modelBuilder.Entity<AppUser>().HasData(user1, user2, user3, user4, user5);
+            modelBuilder.Entity<AppUser>().HasData(
+                user1, user2, user3, 
+                user4, user5);
 
             //Friends
             //user1: user2, user3, user4 without user5
@@ -27,10 +29,21 @@ namespace gRide.DAL
             AppUserFriends appUserFriends2 = AddFriend("6182c48f-4e41-4609-808e-f6df95e5d85f", "4c32b38a-4aec-4531-bc02-0cfda8e160a5");
             AppUserFriends appUserFriends3 = AddFriend("6182c48f-4e41-4609-808e-f6df95e5d85f", "e89503ad-21ba-4556-ac7c-e11f871f2113");
 
+            AppUserFriends appUserFriends11 = AddFriend("d4308670-acc9-439c-ae79-74e125d0dba9", "6182c48f-4e41-4609-808e-f6df95e5d85f");
+            AppUserFriends appUserFriends21 = AddFriend("4c32b38a-4aec-4531-bc02-0cfda8e160a5", "6182c48f-4e41-4609-808e-f6df95e5d85f");
+            AppUserFriends appUserFriends31 = AddFriend("e89503ad-21ba-4556-ac7c-e11f871f2113", "6182c48f-4e41-4609-808e-f6df95e5d85f");
+
             //user4: user2, user3  without user1 and user5
             AppUserFriends appUserFriends4 = AddFriend("e89503ad-21ba-4556-ac7c-e11f871f2113", "d4308670-acc9-439c-ae79-74e125d0dba9");
             AppUserFriends appUserFriends5 = AddFriend("e89503ad-21ba-4556-ac7c-e11f871f2113", "4c32b38a-4aec-4531-bc02-0cfda8e160a5");
-            modelBuilder.Entity<AppUserFriends>().HasData(appUserFriends1, appUserFriends2, appUserFriends3, appUserFriends4, appUserFriends5);
+
+            AppUserFriends appUserFriends41 = AddFriend("d4308670-acc9-439c-ae79-74e125d0dba9", "e89503ad-21ba-4556-ac7c-e11f871f2113");
+            AppUserFriends appUserFriends51 = AddFriend("4c32b38a-4aec-4531-bc02-0cfda8e160a5", "e89503ad-21ba-4556-ac7c-e11f871f2113");
+            modelBuilder.Entity<AppUserFriends>().HasData(
+                appUserFriends1, appUserFriends2, appUserFriends3, 
+                appUserFriends4, appUserFriends5, appUserFriends11, 
+                appUserFriends21, appUserFriends31, appUserFriends41, 
+                appUserFriends51);
         }
 
         private static AppUser CreateUser(string Id, string UserName, string Email, bool EmailConfirmed = true, string Password = "Test123%",

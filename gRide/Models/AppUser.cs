@@ -9,7 +9,7 @@ namespace gRide.Models
         public RegisterMethod ChosenRegisterMethod { get; set; }
         public ICollection<AppUserFriends> Friends { get; set; }
         public ICollection<Event> EventsHosted { get; set; }
-        public List<AppUserEvent> EventsLinked { get; set; }
+        public ICollection<AppUserEvent> EventsLinked { get; set; }
     }
 
     public enum RegisterMethod
